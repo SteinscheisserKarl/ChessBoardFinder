@@ -1,9 +1,9 @@
 # ChessBoardFinder
-Finding a Chessboard in images
+Finding a Chessboard on images
 
 This is related to https://github.com/WolfgangFahl/play-chess-with-a-webcam please have a look into this project if you are interested in chess game analysis/recognition.
 
-This is a try to detect a chessboard in an image or video file by using opencv and numpy but no machine learning libs. 
+This is a try to detect a chessboard on an image or video file by using opencv and numpy but no machine learning libs. 
 
 ChessBoardFinder.py can find a chessboard under the following conditions:
 - there is exactly one chessboard on the image
