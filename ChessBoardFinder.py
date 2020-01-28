@@ -36,6 +36,17 @@ def polars(arr,ref):
    t = np.arctan2(y,x)
    return (r,t)
 
+def getColor(img,length,xcoord,ycoord):    # xcoord,ycoord of "0,0" means square A1, "7,7" is H8 and 3,0 is D1
+   # print (length,xcoord,ycoord)
+   sl = length//8 # squarelength
+   color = cv2.norm(img[(length-(ycoord+1)*sl):(length - ycoord*sl),xcoord*sl:(xcoord+1)*sl],cv2.NORM_L1)
+   return color
+
+def sameColorClass(a,b):
+    if abs(a-b)<max(a,b)/10:
+       return True
+    return False
+
 def findWarpPoints(file,isfile,startframe,debug):
 
     if isfile==True:
@@ -44,6 +55,8 @@ def findWarpPoints(file,isfile,startframe,debug):
       cap = cv2.VideoCapture(file)
       for counter in range(startframe):
         ret, image = cap.read() 
+
+    cap.release() 
 
     # searching for the chessboard is much faster on smaller images...
     # orig_rows,orig_cols,channels = image.shape        
@@ -166,9 +179,33 @@ def findWarpPoints(file,isfile,startframe,debug):
     # OuterWarpPoints[:, 0], OuterWarpPoints[:, 1] = OuterWarpPoints[:, 1], OuterWarpPoints[:, 0].copy() # switching x/y vals
     bestwarped = cv2.warpPerspective(image.copy(),besttransform,(len,len))
     print ("bestwarppoints: [[%d,%d],[%d,%d],[%d,%d],[%d,%d]]" % (OuterWarpPoints[0][0],OuterWarpPoints[0][1],OuterWarpPoints[1][0],OuterWarpPoints[1][1],OuterWarpPoints[2][0],OuterWarpPoints[2][1],OuterWarpPoints[3][0],OuterWarpPoints[3][1]))
+
+    ColE4 = getColor(bestwarped,len,4,3)  # should be white with no piece on it - very bright
+    ColE5 = getColor(bestwarped,len,4,4)  # should be black with no piece on it - dark
+    ColD1 = getColor(bestwarped,len,3,0)  # white with white queen              - bright
+    ColD8 = getColor(bestwarped,len,3,7)  # black with black queen              - very dark
+    ColA4 = getColor(bestwarped,len,0,3)  # empty white                         - very bright
+    ColH4 = getColor(bestwarped,len,7,3)  # empty black                         - dark
+    #print (ColE4,ColE5,ColD1,ColD8,ColA4,ColH4)
+    #print(sameColorClass(ColE4,max(ColE4,ColE5,ColD1,ColD8,ColA4,ColH4)))
+    #print(sameColorClass(ColE5,max(ColE4,ColE5,ColD1,ColD8,ColA4,ColH4)))
+    if ColE4 > ColE5:    #either the board is correctly rotated or it must be turned by 180 deg
+      if ColD1 > ColD8: 
+         print ("Board is correctly rotated")
+      else:
+         print ("rotate by 180")
+         bestwarped = cv2.rotate(bestwarped,cv2.ROTATE_180)
+    else: #the board must be rotated by 90 or 270 deg
+      if ColH4 > ColA4:
+         print ("Board must be rotated by 90 deg clockwise")
+         bestwarped = cv2.rotate(bestwarped,cv2.ROTATE_90_CLOCKWISE)
+      else:
+         print ("Board must be rotated by 270 deg clockwise")
+         bestwarped = cv2.rotate(bestwarped,cv2.ROTATE_90_COUNTERCLOCKWISE)
     if debug:
       cv2.imshow("Warped",bestwarped)
       cv2.waitKey(0)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract moves from a Chess vid')
