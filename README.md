@@ -1,5 +1,5 @@
 # ChessBoardFinder
-Finding a Chessboard on images
+Finding a Chessboard on images or videos
 
 This is related to https://github.com/WolfgangFahl/play-chess-with-a-webcam please have a look into this project if you are interested in chess game analysis/recognition.
 
