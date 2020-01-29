@@ -5,7 +5,6 @@ Created on 2020-01-24
 
 @author: Thomas Klaube
 '''
-
 import cv2
 import numpy as np
 import argparse
@@ -47,16 +46,7 @@ def sameColorClass(a,b):
        return True
     return False
 
-def findWarpPoints(file,isfile,startframe,debug):
-
-    if isfile==True:
-      image=cv2.imread(file,1)
-    else: 
-      cap = cv2.VideoCapture(file)
-      for counter in range(startframe):
-        ret, image = cap.read() 
-
-    cap.release() 
+def findWarpPoints(image,debug):
 
     # searching for the chessboard is much faster on smaller images...
     # orig_rows,orig_cols,channels = image.shape        
@@ -178,7 +168,7 @@ def findWarpPoints(file,isfile,startframe,debug):
     OuterWarpPoints = np.squeeze(cv2.perspectiveTransform(p_array, M_inv), axis=1)
     # OuterWarpPoints[:, 0], OuterWarpPoints[:, 1] = OuterWarpPoints[:, 1], OuterWarpPoints[:, 0].copy() # switching x/y vals
     bestwarped = cv2.warpPerspective(image.copy(),besttransform,(len,len))
-    print ("bestwarppoints: [[%d,%d],[%d,%d],[%d,%d],[%d,%d]]" % (OuterWarpPoints[0][0],OuterWarpPoints[0][1],OuterWarpPoints[1][0],OuterWarpPoints[1][1],OuterWarpPoints[2][0],OuterWarpPoints[2][1],OuterWarpPoints[3][0],OuterWarpPoints[3][1]))
+    # print ("bestwarppoints: [[%d,%d],[%d,%d],[%d,%d],[%d,%d]]" % (OuterWarpPoints[0][0],OuterWarpPoints[0][1],OuterWarpPoints[1][0],OuterWarpPoints[1][1],OuterWarpPoints[2][0],OuterWarpPoints[2][1],OuterWarpPoints[3][0],OuterWarpPoints[3][1]))
 
     ColE4 = getColor(bestwarped,len,4,3)  # should be white with no piece on it - very bright
     ColE5 = getColor(bestwarped,len,4,4)  # should be black with no piece on it - dark
@@ -189,23 +179,31 @@ def findWarpPoints(file,isfile,startframe,debug):
     #print (ColE4,ColE5,ColD1,ColD8,ColA4,ColH4)
     #print(sameColorClass(ColE4,max(ColE4,ColE5,ColD1,ColD8,ColA4,ColH4)))
     #print(sameColorClass(ColE5,max(ColE4,ColE5,ColD1,ColD8,ColA4,ColH4)))
+    rotateAngle = -1 # do not rotate
     if ColE4 > ColE5:    #either the board is correctly rotated or it must be turned by 180 deg
       if ColD1 > ColD8: 
-         print ("Board is correctly rotated")
+         if debug: 
+           print ("Board is correctly rotated")
       else:
-         print ("rotate by 180")
+         if debug:
+            print ("rotate by 180")
          bestwarped = cv2.rotate(bestwarped,cv2.ROTATE_180)
+         rotateAngle = cv2.ROTATE_180
     else: #the board must be rotated by 90 or 270 deg
       if ColH4 > ColA4:
-         print ("Board must be rotated by 90 deg clockwise")
+         if debug:
+             print ("Board must be rotated by 90 deg clockwise")
          bestwarped = cv2.rotate(bestwarped,cv2.ROTATE_90_CLOCKWISE)
+         rotateAngle = cv2.ROTATE_90_CLOCKWISE
       else:
-         print ("Board must be rotated by 270 deg clockwise")
+         if debug:
+             print ("Board must be rotated by 270 deg clockwise")
          bestwarped = cv2.rotate(bestwarped,cv2.ROTATE_90_COUNTERCLOCKWISE)
+         rotateAngle = cv2.ROTATE_90_COUNTERCLOCKWISE
     if debug:
       cv2.imshow("Warped",bestwarped)
       cv2.waitKey(0)
-
+    return OuterWarpPoints,besttransform,rotateAngle
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract moves from a Chess vid')
@@ -228,6 +226,16 @@ if __name__ == "__main__":
                         help="specify startframe in Video. Default is 5 as the first frames are often broken in videos")
 
     args = parser.parse_args()
+ 
+    if args.image:
+       rawimage = cv2.imread(args.file,1)
+    else:
+       cap = cv2.VideoCapture(args.file)
+       for counter in range(args.startframe):
+          ret, rawimage = cap.read() 
+       cap.release()
     
-    videoWarpPoints = findWarpPoints(args.file,args.image,args.startframe,args.debug)
+    videoWarpPoints,Matrix,rotation = findWarpPoints(rawimage,args.debug)
+    print ("bestwarppoints: [[%d,%d],[%d,%d],[%d,%d],[%d,%d]]" % (videoWarpPoints[0][0],videoWarpPoints[0][1],videoWarpPoints[1][0],videoWarpPoints[1][1],videoWarpPoints[2][0],videoWarpPoints[2][1],videoWarpPoints[3][0],videoWarpPoints[3][1]))
+    print ("Board must be rotated by %d degrees." % ((rotation +1) * 90))
     
