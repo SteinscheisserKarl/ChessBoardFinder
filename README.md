@@ -23,10 +23,10 @@ python ChessBoardFinder.py video.mp4 --debug --startframe 10
 
 python ChessBoardFinder.py pic.jpg --debug --image
 
-If you have not calibrated your camera you should try (slower but has more chances to find the board):
+If you have not calibrated your camera you should try (slower but has more chances to find the board):</br>
 python ChessBoardFinder.py video.mp4 --debug --noundistort --speedup 0 
 
-If you want some padding pixels around the chessboard:
+If you want some padding pixels around the chessboard:</br>
 python ChessBoardFinder.py video.mp4 --debug  --padding 10 
 
 There are some example videos of chessgames at https://files.klaube.net (directory index is enabled) so you could also try:
