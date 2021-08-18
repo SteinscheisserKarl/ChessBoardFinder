@@ -1,8 +1,6 @@
 # ChessBoardFinder
 Finding a Chessboard on images or videos
 
-This is related to https://github.com/WolfgangFahl/play-chess-with-a-webcam please have a look into this project if you are interested in chess game analysis/recognition.
-
 This is a try to detect a chessboard on an image or video file by using opencv and numpy but no machine learning libs. 
 
 ChessBoardFinder.py can find a chessboard under the following conditions:
@@ -19,12 +17,18 @@ The chessboard is found quite reliably and this algorithm is faster than findChe
 
 How to use:
 
-python ChessBoardFinder.py --debug video.avi
+python ChessBoardFinder.py video.mp4 --debug
 
-python ChessBoardFinder.py --debug video.avi --startframe 10
+python ChessBoardFinder.py video.mp4 --debug --startframe 10
 
-python ChessBoardFinder.py --debug --image pic.jpg
+python ChessBoardFinder.py pic.jpg --debug --image
+
+If you have not calibrated your camera you should try (slower but has more chances to find the board):
+python ChessBoardFinder.py video.mp4 --debug --noundistort --speedup 0 
+
+If you want some padding pixels around the chessboard:
+python ChessBoardFinder.py video.mp4 --debug  --padding 10 
 
 There are some example videos of chessgames at https://files.klaube.net (directory index is enabled) so you could also try:
 
-python ChessBoardFinder.py https://files.klaube.net/TK_scholarsmate30.avi --debug --startframe 5
+python ChessBoardFinder.py https://files.klaube.net/chessgame_30.01.2020T2205.mp4 --debug --startframe 5 --noundistort --speedup 0
